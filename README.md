@@ -11,7 +11,7 @@ earth = CelestialDynamics.celestial_object(earth_mass, [0,0,0], [0, 0, 0], colou
 moon = CelestialDynamics.celestial_object(moon_mass, [moon_distance, 0, 0], [0, moon_mass * moon_velocity, 0],
         colour='white', radius=moon_radius)
 ```
-2. Define a `system` given by a list `celestial_object`'s
+2. Define a `stellar_system` given by a list `celestial_object`'s
 ```
 system = CelestialDynamics.stellar_system([earth, moon])
 ```
