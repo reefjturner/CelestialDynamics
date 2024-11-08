@@ -223,7 +223,7 @@ def integrate(system, t_eval, method='DOP853'):
     output = integ.solve_ivp(Hamiltonian_Vec_Field, t_span=t_span, y0=y0, t_eval=t_eval, method=method)
     return output
 
-def animate_system_2D(system, t_eval, file_name, method='DOP853', stream_reduction=10):
+def animate_system_2D(system, t_eval, file_name, method='DOP853', stream_reduction=10, background_colour='black', camera_z = 1.0):
     '''
     Bruh!
 
@@ -237,6 +237,10 @@ def animate_system_2D(system, t_eval, file_name, method='DOP853', stream_reducti
         method (str, default = 'DOP853'): integration method to be used by ``solve_ivp``. See scipy.integrate.
 
         stream_reduction (int, default = 10): Sets the length of the trails which follow celestial objects.
+
+        backgroud_colour (str, default = 'black'): Sets the background colour of the animation.
+
+        camera_z (float, default = 1.0): Sets the z position of the camera (for parallax effects as objects move through the z axis)
 
     Examples:
     >>> earth_mass = CelestialDynamics.kg_to_solar_mass(5.972e24)
@@ -255,7 +259,7 @@ def animate_system_2D(system, t_eval, file_name, method='DOP853', stream_reducti
     '''
     stars = system.get_stars()
     output = integrate(system ,t_eval, method=method)
-    plt.rcParams['figure.facecolor'] = 'black'
+    plt.rcParams['figure.facecolor'] = background_colour
     frames = len(t_eval)
     stream_length = frames // stream_reduction
     inter = 1000/frames
@@ -289,7 +293,7 @@ def animate_system_2D(system, t_eval, file_name, method='DOP853', stream_reducti
             for j in range(len(stars)):
                 plt.plot(output.y[3*j][0:i], output.y[3*j+1][0:i], color=stars[j].get_colour(), alpha=0.5)
         for j in range(len(stars)):
-            plt.scatter(output.y[3*j][i], output.y[3*j+1][i], color=stars[j].get_colour(), s = 50*stars[j].get_radius()/max_radius)
+            plt.scatter(output.y[3*j][i], output.y[3*j+1][i], color=stars[j].get_colour(), s= np.abs(camera_z)**2 *50*stars[j].get_radius()/max_radius / np.abs(camera_z - output.y[3*j+2][i])**2)
     ani = animation.FuncAnimation(fig, animate, frames=frames, interval=inter, repeat=True)
     ffmpeg_writer = animation.FFMpegWriter(fps=30)
     print('Rendering Animation:')
