@@ -1,6 +1,7 @@
 '''
 Documentation!
 '''
+
 import numpy as np
 import scipy.integrate as integ
 import matplotlib.pyplot as plt
@@ -222,7 +223,7 @@ def integrate(system, t_eval, method='DOP853'):
     output = integ.solve_ivp(Hamiltonian_Vec_Field, t_span=t_span, y0=y0, t_eval=t_eval, method=method)
     return output
 
-def animate_system_2D(system, t_eval, file_name, method='DOP853'):
+def animate_system_2D(system, t_eval, file_name, method='DOP853', stream_reduction=10):
     '''
     Bruh!
 
@@ -234,6 +235,8 @@ def animate_system_2D(system, t_eval, file_name, method='DOP853'):
         file_name (str): Name of the exported file. Must include file type (.mp4, .gif, ...).
 
         method (str, default = 'DOP853'): integration method to be used by ``solve_ivp``. See scipy.integrate.
+
+        stream_reduction (int, default = 10): Sets the length of the trails which follow celestial objects.
 
     Examples:
     >>> earth_mass = CelestialDynamics.kg_to_solar_mass(5.972e24)
@@ -254,6 +257,7 @@ def animate_system_2D(system, t_eval, file_name, method='DOP853'):
     output = integrate(system ,t_eval, method=method)
     plt.rcParams['figure.facecolor'] = 'black'
     frames = len(t_eval)
+    stream_length = frames // stream_reduction
     inter = 1000/frames
     fig = plt.figure()
     ax = plt.axes(aspect='equal')
@@ -263,10 +267,10 @@ def animate_system_2D(system, t_eval, file_name, method='DOP853'):
     max_radius = 0
     for k in range(len(stars)):
         for l in range(3):
-            if np.min(output.y[3*k + l]) < min_axis:
-                min_axis = np.min(output.y[3*k + l])
-            if np.max(output.y[3*k + l]) > max_axis:
-                max_axis = np.max(output.y[3*k + l])
+            if output.y[3*k + l][0] < min_axis:
+                min_axis = output.y[3*k + l][0]
+            if output.y[3*k + l][0] > max_axis:
+                max_axis = output.y[3*k + l][0]
         if stars[k].get_radius() > max_radius:
                 max_radius = stars[k].get_radius()
         if np.abs(max_axis) > np.abs(min_axis):
@@ -278,11 +282,16 @@ def animate_system_2D(system, t_eval, file_name, method='DOP853'):
         ax.set_axis_off()
         ax.set_xlim(1.5*min_axis, 1.5*max_axis)
         ax.set_ylim(1.5*min_axis, 1.5*max_axis)
+        if i >= stream_length:
+            for j in range(len(stars)):
+                plt.plot(output.y[3*j][i-stream_length:i], output.y[3*j+1][i-stream_length:i], color=stars[j].get_colour(), alpha=0.5)
+        else:
+            for j in range(len(stars)):
+                plt.plot(output.y[3*j][0:i], output.y[3*j+1][0:i], color=stars[j].get_colour(), alpha=0.5)
         for j in range(len(stars)):
             plt.scatter(output.y[3*j][i], output.y[3*j+1][i], color=stars[j].get_colour(), s = 50*stars[j].get_radius()/max_radius)
-            plt.plot(output.y[3*j][0:i], output.y[3*j+1][0:i], color=stars[j].get_colour(), alpha=0.5)
     ani = animation.FuncAnimation(fig, animate, frames=frames, interval=inter, repeat=True)
-    ffmpeg_writer = animation.FFMpegWriter(fps=60)
+    ffmpeg_writer = animation.FFMpegWriter(fps=30)
     print('Rendering Animation:')
     ani.save(file_name, writer=ffmpeg_writer)
     print('Animation Rendered Successfully.')
