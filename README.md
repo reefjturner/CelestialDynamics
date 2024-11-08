@@ -1,7 +1,7 @@
 # CelestialDynamics
 A Hamiltonian based planetary motion simulator.
 
-![ten randomly generated plannets smashing into eachtoher](\media\collection.gif)
+![ten randomly generated plannets smashing into eachtoher](/media/collection.gif)
 
 ## Usage
 
